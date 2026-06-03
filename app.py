@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from flask import Flask, flash, g, redirect, render_template, request, url_for
 
@@ -53,6 +53,64 @@ def init_db():
         )
         """
     )
+    db.commit()
+    seed_sample_expenses()
+
+
+SAMPLE_EXPENSES = [
+    # Current month
+    ("Morning Coffee", 85.0, "Food", 1, "Quick breakfast run"),
+    ("Coffee at Starbucks", 180.0, "Food", 3, "Iced latte"),
+    ("Lunch at Office Cafeteria", 220.0, "Food", 5, None),
+    ("Groceries - BigBasket", 1450.0, "Food", 8, "Weekly groceries"),
+    ("Bakery Purchase", 95.0, "Food", 11, "Bread and pastries"),
+    ("Metro Card Recharge", 500.0, "Transport", 2, None),
+    ("Fuel - Petrol Pump", 2200.0, "Transport", 12, "Full tank"),
+    ("Mobile Recharge", 599.0, "Bills", 6, "Prepaid plan"),
+    ("Internet Bill", 999.0, "Bills", 9, "Broadband monthly"),
+    ("Netflix Subscription", 649.0, "Entertainment", 10, None),
+    ("Clothes - H&M", 1899.0, "Shopping", 15, "Summer collection"),
+    ("Stationery", 350.0, "Other", 4, "Pens and notebooks"),
+    # Previous month
+    ("Coffee", 60.0, "Food", 35, None),
+    ("Dinner with Friends", 850.0, "Food", 40, "Restaurant outing"),
+    ("Lunch", 280.0, "Food", 38, "Thali combo"),
+    ("Bus Ticket", 45.0, "Transport", 32, "Daily pass"),
+    ("Train Ticket", 420.0, "Transport", 45, "Weekend trip"),
+    ("Electricity Bill", 1200.0, "Bills", 50, "Monthly billing cycle"),
+    ("Water Bill", 350.0, "Bills", 48, None),
+    ("Movie Ticket", 320.0, "Entertainment", 36, "Weekend show"),
+    ("Books - Amazon", 650.0, "Shopping", 33, "Technical books"),
+    ("Medical Expense", 780.0, "Other", 55, "Pharmacy"),
+    # Two months ago
+    ("Coffee at Cafe", 95.0, "Food", 65, None),
+    ("Lunch - Food Court", 150.0, "Food", 70, None),
+    ("Fuel", 2800.0, "Transport", 75, "Highway trip"),
+    ("Shoes", 2499.0, "Shopping", 80, "Running shoes"),
+    ("Theme Park Ticket", 1500.0, "Entertainment", 68, "Family outing"),
+    ("Donation", 500.0, "Other", 72, "Local charity"),
+    ("Gaming Purchase", 899.0, "Entertainment", 78, "Steam sale"),
+    ("Mobile Accessories", 799.0, "Shopping", 62, "Phone case and charger"),
+]
+
+
+def seed_sample_expenses():
+    """Insert demo expenses once when the database has no records."""
+    db = get_db()
+    count = db.execute("SELECT COUNT(*) AS cnt FROM expenses").fetchone()["cnt"]
+    if count > 0:
+        return
+
+    today = date.today()
+    for title, amount, category, days_ago, note in SAMPLE_EXPENSES:
+        expense_date = (today - timedelta(days=days_ago)).isoformat()
+        db.execute(
+            """
+            INSERT INTO expenses (title, amount, category, date, note)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (title, amount, category, expense_date, note),
+        )
     db.commit()
 
 
