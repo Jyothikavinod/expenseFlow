@@ -1,8 +1,7 @@
 # ExpenseFlow – Personal Finance Command Center
 
-ExpenseFlow is a lightweight personal expense tracking application built using Flask and SQLite. The application helps users record, organize, and analyze their spending through an intuitive dashboard and expense management interface.
+ExpenseFlow is a Flask and SQLite-based personal expense management application that provides complete CRUD functionality for tracking expenses, persistent data storage, monthly spending analytics, category-wise expense breakdowns, advanced filtering by category, date range, and title, budget tracking with overspending alerts, and robust input validation with edge-case handling. The application is designed with a clean, lightweight architecture that ensures ease of use, maintainability, and minimal setup requirements.
 
-The project was developed as a complete end-to-end expense tracking solution with a focus on usability, maintainability, and efficient data management.
 
 ## Features
 
