@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ExpenseFlow{% endblock %} – Personal Finance Command Center</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="{{ url_for('index') }}" class="logo">
+                <span class="logo-mark">EF</span>
+                <span class="logo-text">
+                    <strong>ExpenseFlow</strong>
+                    <small>Personal Finance Command Center</small>
+                </span>
+            </a>
+            <nav class="main-nav">
+                <a href="{{ url_for('index') }}" class="nav-link">Dashboard</a>
+                <a href="{{ url_for('add_expense') }}" class="nav-link nav-link-primary">Add Expense</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>ExpenseFlow &mdash; Local Personal Expense Tracker</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

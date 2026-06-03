@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Track spending for {{ summary.month_label }}</p>
+</section>
+
+{% if summary.is_exceeded %}
+<section class="budget-warning">
+    Budget Exceeded by {{ summary.exceeded_by | currency }}
+</section>
+{% endif %}
+
+<section class="dashboard-cards">
+    <article class="card stat-card">
+        <h2>Monthly Budget</h2>
+        <p class="stat-value">
+            {% if summary.monthly_budget is not none %}
+                {{ summary.monthly_budget | currency }}
+            {% else %}
+                Not set
+            {% endif %}
+        </p>
+    </article>
+    <article class="card stat-card">
+        <h2>Amount Spent</h2>
+        <p class="stat-value {% if summary.is_exceeded %}stat-value-danger{% endif %}">
+            {{ summary.total_spent | currency }}
+        </p>
+    </article>
+    <article class="card stat-card">
+        <h2>Remaining Budget</h2>
+        <p class="stat-value {% if summary.is_exceeded %}stat-value-danger{% endif %}">
+            {% if summary.monthly_budget is not none %}
+                {{ summary.remaining_budget | currency }}
+            {% else %}
+                —
+            {% endif %}
+        </p>
+    </article>
+    <article class="card stat-card">
+        <h2>Total Expenses</h2>
+        <p class="stat-value">{{ summary.expense_count }}</p>
+    </article>
+    <article class="card stat-card">
+        <h2>Highest Expense</h2>
+        <p class="stat-value">{{ summary.highest_expense | currency }}</p>
+    </article>
+</section>
+
+<section class="card budget-section">
+    <h2>Monthly Budget Tracker</h2>
+    <p class="section-note">Set your spending limit for {{ summary.month_label }}.</p>
+    <form method="post" action="{{ url_for('set_budget') }}" class="budget-form">
+        <div class="form-group budget-input-group">
+            <label for="budget">Monthly Budget <span class="required">*</span></label>
+            <input
+                type="number"
+                id="budget"
+                name="budget"
+                min="0.01"
+                step="0.01"
+                required
+                placeholder="e.g. 10000"
+                value="{{ summary.monthly_budget if summary.monthly_budget is not none else '' }}"
+            >
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                {% if summary.monthly_budget is not none %}Update Budget{% else %}Set Budget{% endif %}
+            </button>
+        </div>
+    </form>
+</section>
+
+<section class="card category-breakdown">
+    <h2>Category Breakdown (This Month)</h2>
+    <ul class="category-list">
+        {% for category in categories %}
+        <li>
+            <span>{{ category }}</span>
+            <strong>{{ summary.category_totals[category] | currency }}</strong>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+
+<section class="card filter-section">
+    <h2>Filter Expenses</h2>
+    <form method="get" action="{{ url_for('index') }}" class="filter-form">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                    <option value="All" {% if filters.category == 'All' %}selected{% endif %}>All</option>
+                    {% for category in categories %}
+                    <option value="{{ category }}" {% if filters.category == category %}selected{% endif %}>
+                        {{ category }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="from_date">From Date</label>
+                <input type="date" id="from_date" name="from_date" value="{{ filters.from_date }}" max="{{ today }}">
+            </div>
+            <div class="form-group">
+                <label for="to_date">To Date</label>
+                <input type="date" id="to_date" name="to_date" value="{{ filters.to_date }}" max="{{ today }}">
+            </div>
+            <div class="form-group">
+                <label for="search">Title Search</label>
+                <input type="text" id="search" name="search" value="{{ filters.search }}" placeholder="e.g. Coffee">
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Clear Filters</a>
+        </div>
+    </form>
+</section>
+
+<section class="card expense-table-section">
+    <div class="section-header">
+        <h2>Expenses</h2>
+        <a href="{{ url_for('add_expense') }}" class="btn btn-primary btn-sm">Add Expense</a>
+    </div>
+
+    {% if expenses %}
+    <div class="table-wrapper">
+        <table class="expense-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Amount</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Note</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr>
+                    <td data-label="Title">{{ expense.title }}</td>
+                    <td data-label="Amount">{{ expense.amount | currency }}</td>
+                    <td data-label="Category">
+                        <span class="badge">{{ expense.category }}</span>
+                    </td>
+                    <td data-label="Date">{{ expense.date }}</td>
+                    <td data-label="Note" class="note-cell">{{ expense.note or "—" }}</td>
+                    <td data-label="Actions" class="actions-cell">
+                        <a href="{{ url_for('edit_expense', expense_id=expense.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                        <form method="post" action="{{ url_for('delete_expense', expense_id=expense.id) }}" class="inline-form delete-form">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        {% if filters_applied %}
+        <p>No matching records found.</p>
+        {% else %}
+        <p>No expenses recorded yet.</p>
+        <a href="{{ url_for('add_expense') }}" class="btn btn-primary">Add your first expense</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
